@@ -124,13 +124,22 @@
             outline: none;
             border-color: #667eea;
         }
+        .form-group input:disabled {
+            background: #f8f9fa;
+            cursor: not-allowed;
+        }
         .config-row {
             display: flex;
             gap: 16px;
             align-items: flex-end;
+            flex-wrap: wrap;
         }
         .config-row .form-group {
-            flex: 1;
+            flex: 1 1 200px;
+            min-width: 150px;
+        }
+        .config-row .btn {
+            flex: 0 0 auto;
         }
         table {
             width: 100%;
@@ -303,8 +312,11 @@
                     document.getElementById('btn-start').disabled = status.running;
                     document.getElementById('btn-stop').disabled = !status.running;
 
-                    document.getElementById('config-port').value = status.port;
-                    document.getElementById('config-root').value = status.rootDir;
+                    // 只在用户未聚焦输入框时才更新值，避免打断输入
+                    const portInput = document.getElementById('config-port');
+                    const rootInput = document.getElementById('config-root');
+                    if (!portInput.matches(':focus')) portInput.value = status.port;
+                    if (!rootInput.matches(':focus')) rootInput.value = status.rootDir;
                 }
             } catch (e) {
                 console.error('获取状态失败:', e);

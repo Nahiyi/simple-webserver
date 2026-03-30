@@ -184,22 +184,48 @@ func apiConfig(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if port, ok := data["port"].(float64); ok {
-			p := int(port)
-			if p < 1 || p > 65535 {
-				writeJSON(w, 400, APIResponse{Success: false, Message: "端口号无效 (1-65535)"})
-				return
+		var errors []string
+
+		// 处理端口配置
+		if v, ok := data["port"]; ok {
+			var port int
+			switch val := v.(type) {
+			case float64:
+				port = int(val)
+			case int:
+				port = val
+			case string:
+				if val == "" {
+					port = 0
+				} else {
+					port = 8080 // 默认
+				}
 			}
-			config.SetPort(p)
+			if port < 1 || port > 65535 {
+				errors = append(errors, "端口号无效 (1-65535)")
+			} else {
+				config.SetPort(port)
+			}
 		}
 
-		if rootDir, ok := data["rootDir"].(string); ok && rootDir != "" {
-			// 检查目录是否存在
-			if _, err := os.Stat(rootDir); os.IsNotExist(err) {
-				writeJSON(w, 400, APIResponse{Success: false, Message: "目录不存在: " + rootDir})
-				return
+		// 处理根目录配置
+		if v, ok := data["rootDir"]; ok {
+			if rootDir, ok := v.(string); ok {
+				if rootDir != "" {
+					// 目录不存在时自动创建
+					if _, err := os.Stat(rootDir); os.IsNotExist(err) {
+						if err := os.MkdirAll(rootDir, 0755); err != nil {
+							errors = append(errors, "无法创建目录: "+rootDir)
+						}
+					}
+					config.SetRootDir(rootDir)
+				}
 			}
-			config.SetRootDir(rootDir)
+		}
+
+		if len(errors) > 0 {
+			writeJSON(w, 400, APIResponse{Success: false, Message: errors[0]})
+			return
 		}
 
 		resp := APIResponse{
