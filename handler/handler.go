@@ -99,11 +99,14 @@ func HandleConnection(conn net.Conn) {
 
 	// 发送成功响应
 	contentType := getContentType(filePath)
+	disposition := getContentDisposition(filePath)
+
 	response := fmt.Sprintf("HTTP/1.1 200 OK\r\n"+
 		"Content-Type: %s\r\n"+
 		"Content-Length: %d\r\n"+
+		"Content-Disposition: %s\r\n"+
 		"Connection: close\r\n"+
-		"\r\n", contentType, len(content))
+		"\r\n", contentType, len(content), disposition)
 
 	conn.Write([]byte(response))
 	conn.Write(content)
@@ -201,7 +204,45 @@ func getContentType(filePath string) string {
 		return "image/x-icon"
 	case ".txt":
 		return "text/plain"
+	case ".webp":
+		return "image/webp"
+	case ".bmp":
+		return "image/bmp"
+	case ".pdf":
+		return "application/pdf"
+	case ".xml":
+		return "application/xml"
+	case ".md":
+		return "text/plain; charset=utf-8"
+	case ".csv":
+		return "text/csv; charset=utf-8"
 	default:
 		return "application/octet-stream"
 	}
+}
+
+// getContentDisposition 返回 Content-Disposition 头
+// inline: 浏览器直接显示
+// attachment: 下载
+func getContentDisposition(filePath string) string {
+	ext := strings.ToLower(filepath.Ext(filePath))
+
+	// 浏览器可以直接显示的文件类型
+	inlineExtensions := []string{
+		".html", ".htm", ".css", ".js", ".json",
+		".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".bmp", ".ico",
+		".txt", ".pdf", ".xml", ".md", ".csv",
+	}
+
+	for _, inlineExt := range inlineExtensions {
+		if ext == inlineExt {
+			// 提取文件名用于 inline 显示
+			filename := filepath.Base(filePath)
+			return fmt.Sprintf("inline; filename=\"%s\"", filename)
+		}
+	}
+
+	// 其他文件类型强制下载
+	filename := filepath.Base(filePath)
+	return fmt.Sprintf("attachment; filename=\"%s\"", filename)
 }
