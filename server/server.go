@@ -1,10 +1,10 @@
 package server
 
 import (
+	"context"
 	"fmt"
-	"log"
 	"net"
-	"sync"
+	"sync/atomic"
 	"time"
 
 	"simple-webserver/config"
@@ -12,46 +12,39 @@ import (
 )
 
 var (
-	isRunning   bool
-	stopChan    chan struct{}
+	isRunning   atomic.Bool
 	listener    net.Listener
-	mu          sync.RWMutex
-	connections int32 // 当前连接数
+	connections atomic.Int32
+	ctx         context.Context
+	cancel      context.CancelFunc
 )
 
 // IsRunning 返回服务器运行状态
 func IsRunning() bool {
-	mu.RLock()
-	defer mu.RUnlock()
-	return isRunning
+	return isRunning.Load()
 }
 
 // GetConnections 返回当前连接数
 func GetConnections() int32 {
-	return connections
+	return connections.Load()
 }
 
 // Start 启动服务器
 func Start() error {
-	mu.Lock()
-	if isRunning {
-		mu.Unlock()
+	if isRunning.Load() {
 		return fmt.Errorf("服务器已经在运行")
 	}
 
-	stopChan = make(chan struct{})
 	port := config.GetPort()
-
 	addr := fmt.Sprintf(":%d", port)
 	var err error
 	listener, err = net.Listen("tcp", addr)
 	if err != nil {
-		mu.Unlock()
 		return fmt.Errorf("启动失败: %v", err)
 	}
 
-	isRunning = true
-	mu.Unlock()
+	ctx, cancel = context.WithCancel(context.Background())
+	isRunning.Store(true)
 
 	fmt.Printf("Web服务器已启动，监听端口: %d\n", port)
 	fmt.Printf("资源根目录: %s\n", config.GetRootDir())
@@ -63,19 +56,14 @@ func Start() error {
 
 // Stop 停止服务器
 func Stop() error {
-	mu.Lock()
-	if !isRunning {
-		mu.Unlock()
+	if !isRunning.Load() {
 		return fmt.Errorf("服务器未运行")
 	}
-	mu.Unlock()
 
-	close(stopChan)
+	cancel()
 
-	mu.Lock()
 	listener.Close()
-	isRunning = false
-	mu.Unlock()
+	isRunning.Store(false)
 
 	fmt.Println("Web服务器已停止")
 	return nil
@@ -86,33 +74,20 @@ func run() {
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			mu.RLock()
-			closed := stopChan == nil
-			mu.RUnlock()
-			if closed {
+			select {
+			case <-ctx.Done():
 				return
+			default:
+				time.Sleep(100 * time.Millisecond)
+				continue
 			}
-			log.Printf("接受连接失败: %v\n", err)
-			time.Sleep(100 * time.Millisecond)
-			continue
 		}
 
-		// 增加连接计数
-		atomicAdd(&connections, 1)
+		connections.Add(1)
 
-		// 每个客户端连接由独立goroutine处理
 		go func() {
-			defer func() {
-				atomicAdd(&connections, -1)
-				handler.HandleConnection(conn)
-			}()
+			defer connections.Add(-1)
+			handler.HandleConnection(conn)
 		}()
 	}
-}
-
-// atomicAdd 原子增加
-func atomicAdd(val *int32, delta int32) {
-	mu.Lock()
-	*val += delta
-	mu.Unlock()
 }
