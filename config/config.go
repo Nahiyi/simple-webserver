@@ -1,6 +1,9 @@
 package config
 
 import (
+	"fmt"
+	"path/filepath"
+	"strings"
 	"sync"
 )
 
@@ -69,4 +72,58 @@ func SetRootDir(dir string) {
 	mu.Lock()
 	defer mu.Unlock()
 	cfg.RootDir = dir
+}
+
+// GetContentType 根据文件扩展名返回MIME类型
+func GetContentType(filePath string) string {
+	ext := strings.ToLower(filepath.Ext(filePath))
+	switch ext {
+	case ".html", ".htm":
+		return "text/html; charset=utf-8"
+	case ".css":
+		return "text/css; charset=utf-8"
+	case ".js":
+		return "application/javascript; charset=utf-8"
+	case ".json":
+		return "application/json"
+	case ".png":
+		return "image/png"
+	case ".jpg", ".jpeg":
+		return "image/jpeg"
+	case ".gif":
+		return "image/gif"
+	case ".svg":
+		return "image/svg+xml"
+	case ".ico":
+		return "image/x-icon"
+	case ".txt", ".md", ".csv":
+		return "text/plain; charset=utf-8"
+	case ".webp":
+		return "image/webp"
+	case ".bmp":
+		return "image/bmp"
+	case ".pdf":
+		return "application/pdf"
+	case ".xml":
+		return "application/xml"
+	default:
+		return "application/octet-stream"
+	}
+}
+
+// GetContentDisposition 返回Content-Disposition头
+// inline: 浏览器直接显示，attachment: 下载
+func GetContentDisposition(filePath string) string {
+	ext := strings.ToLower(filepath.Ext(filePath))
+	inlineExtensions := []string{
+		".html", ".htm", ".css", ".js", ".json",
+		".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".bmp", ".ico",
+		".txt", ".pdf", ".xml", ".md", ".csv",
+	}
+	for _, inlineExt := range inlineExtensions {
+		if ext == inlineExt {
+			return fmt.Sprintf("inline; filename=\"%s\"", filepath.Base(filePath))
+		}
+	}
+	return fmt.Sprintf("attachment; filename=\"%s\"", filepath.Base(filePath))
 }

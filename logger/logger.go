@@ -16,9 +16,9 @@ type AccessLog struct {
 }
 
 var (
-	logs    []AccessLog
-	logsMu  sync.Mutex
-	logChan chan AccessLog
+	logs    []AccessLog    // 日志切片，存储所有的日志记录
+	logsMu  sync.Mutex     // 互斥锁，用来对上述切片进行并发安全读写
+	logChan chan AccessLog // 日志发送、消费管道，经典的生产者-消费者模型
 )
 
 // Init 初始化日志系统
@@ -29,6 +29,7 @@ func Init() {
 
 // processLogs 处理日志
 func processLogs() {
+	// 基于channel控制日志处理：从ch中读取日志
 	for log := range logChan {
 		logsMu.Lock()
 		logs = append(logs, log)
@@ -51,9 +52,10 @@ func Add(clientIP, method, url string, status int) {
 		Status:   status,
 		Time:     time.Now().Format("2006-01-02 15:04:05"),
 	}
+	// 非阻塞发送常见模式
 	select {
-	case logChan <- log:
-	default:
+	case logChan <- log: // 日志通道可写，则发送日志到通道
+	default: // 通道已满，则丢弃日志，不阻塞
 	}
 }
 
@@ -74,6 +76,7 @@ func GetRecent(n int) []AccessLog {
 		n = len(logs)
 	}
 	result := make([]AccessLog, n)
+	// 返回副本
 	copy(result, logs[len(logs)-n:])
 	return result
 }

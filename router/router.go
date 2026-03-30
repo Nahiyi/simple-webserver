@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"simple-webserver/config"
@@ -20,6 +19,8 @@ func StartAdminServer() error {
 	addr := fmt.Sprintf(":%d", port)
 
 	mux := http.NewServeMux()
+
+	// 向mux注册路由和对应的处理器
 
 	// 静态文件服务（控制面板HTML）
 	mux.HandleFunc("/static/", serveStatic)
@@ -60,6 +61,7 @@ func serveStatic(w http.ResponseWriter, r *http.Request) {
 	}
 
 	filePath := "./static/" + path
+	// 读取本地文件
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -71,34 +73,12 @@ func serveStatic(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 设置Content-Type
-	contentType := getContentType(path)
+	contentType := config.GetContentType(path)
 	w.Header().Set("Content-Type", contentType)
 	w.Write(data)
 }
 
-func getContentType(path string) string {
-	if strings.HasSuffix(path, ".html") {
-		return "text/html; charset=utf-8"
-	}
-	if strings.HasSuffix(path, ".css") {
-		return "text/css"
-	}
-	if strings.HasSuffix(path, ".js") {
-		return "application/javascript"
-	}
-	if strings.HasSuffix(path, ".json") {
-		return "application/json"
-	}
-	if strings.HasSuffix(path, ".png") {
-		return "image/png"
-	}
-	if strings.HasSuffix(path, ".jpg") || strings.HasSuffix(path, ".jpeg") {
-		return "image/jpeg"
-	}
-	return "text/plain"
-}
-
-// API响应结构
+// APIResponse API响应结构
 type APIResponse struct {
 	Success bool        `json:"success"`
 	Message string      `json:"message,omitempty"`

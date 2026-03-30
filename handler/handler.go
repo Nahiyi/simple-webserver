@@ -14,28 +14,26 @@ import (
 )
 
 // HandleConnection 处理客户端连接
+// 处理流程：解析请求 -> 安全检查 -> 文件服务 -> 记录日志
 func HandleConnection(conn net.Conn) {
 	defer conn.Close()
+	conn.SetReadDeadline(time.Now().Add(30 * time.Second)) // 30秒读超时
 
-	conn.SetReadDeadline(time.Now().Add(30 * time.Second))
-
+	// 解析请求行（格式：METHOD URL HTTP/VERSION）
 	reader := bufio.NewReader(conn)
 	line, err := reader.ReadString('\n')
 	if err != nil {
 		return
 	}
-
 	parts := strings.Split(strings.TrimSpace(line), " ")
 	if len(parts) < 3 {
 		sendErrorResponse(conn, 400, "Bad Request")
 		return
 	}
-
-	method := parts[0]
-	url := parts[1]
+	method, url := parts[0], parts[1]
 	clientIP := conn.RemoteAddr().String()
 
-	// 解析头部
+	// 解析请求头部（逐行读取直到空行）
 	headers := make(map[string]string)
 	for {
 		line, err := reader.ReadString('\n')
@@ -49,29 +47,29 @@ func HandleConnection(conn net.Conn) {
 		}
 	}
 
-	// 处理请求
 	rootDir := config.GetRootDir()
 
+	// 方法检查：仅支持GET
 	if method != "GET" {
 		logger.Add(clientIP, method, url, 501)
 		sendErrorResponse(conn, 501, "Not Implemented")
 		return
 	}
 
-	// 防止路径遍历
+	// 安全检查：防止路径遍历（检测".."）
 	if strings.Contains(url, "..") {
 		logger.Add(clientIP, method, url, 403)
 		sendErrorResponse(conn, 403, "Forbidden")
 		return
 	}
 
-	// 解析URL获取文件路径
+	// 解析URL为文件路径
 	if url == "/" {
 		url = "/index.html"
 	}
 	filePath := filepath.Join(rootDir, filepath.FromSlash(url))
 
-	// 安全检查：确保文件在根目录内
+	// 二次安全检查：确保文件在rootDir内（绝对路径比对）
 	absRoot, _ := filepath.Abs(rootDir)
 	absPath, _ := filepath.Abs(filePath)
 	if !strings.HasPrefix(absPath, absRoot) {
@@ -80,14 +78,14 @@ func HandleConnection(conn net.Conn) {
 		return
 	}
 
-	// 检查文件是否存在
+	// 文件存在性检查
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		logger.Add(clientIP, method, url, 404)
 		sendErrorResponse(conn, 404, "Not Found")
 		return
 	}
 
-	// 读取文件内容
+	// 读取并发送文件内容
 	content, err := os.ReadFile(filePath)
 	if err != nil {
 		logger.Add(clientIP, method, url, 500)
@@ -97,10 +95,9 @@ func HandleConnection(conn net.Conn) {
 
 	logger.Add(clientIP, method, url, 200)
 
-	// 发送成功响应
-	contentType := getContentType(filePath)
-	disposition := getContentDisposition(filePath)
-
+	// 构造HTTP响应：状态行 + 头部 + 空行 + body
+	contentType := config.GetContentType(filePath)
+	disposition := config.GetContentDisposition(filePath)
 	response := fmt.Sprintf("HTTP/1.1 200 OK\r\n"+
 		"Content-Type: %s\r\n"+
 		"Content-Length: %d\r\n"+
@@ -112,6 +109,7 @@ func HandleConnection(conn net.Conn) {
 	conn.Write(content)
 }
 
+// sendErrorResponse 发送错误响应（带美化HTML页面）
 func sendErrorResponse(conn net.Conn, statusCode int, statusMsg string) {
 	var title, message string
 	var bgColor, textColor string
@@ -230,70 +228,4 @@ func sendErrorResponse(conn net.Conn, statusCode int, statusMsg string) {
 		"\r\n%s", statusCode, statusMsg, len(body), body)
 
 	conn.Write([]byte(response))
-}
-
-func getContentType(filePath string) string {
-	ext := strings.ToLower(filepath.Ext(filePath))
-	switch ext {
-	case ".html", ".htm":
-		return "text/html; charset=utf-8"
-	case ".css":
-		return "text/css; charset=utf-8"
-	case ".js":
-		return "application/javascript; charset=utf-8"
-	case ".json":
-		return "application/json"
-	case ".png":
-		return "image/png"
-	case ".jpg", ".jpeg":
-		return "image/jpeg"
-	case ".gif":
-		return "image/gif"
-	case ".svg":
-		return "image/svg+xml"
-	case ".ico":
-		return "image/x-icon"
-	case ".txt":
-		return "text/plain"
-	case ".webp":
-		return "image/webp"
-	case ".bmp":
-		return "image/bmp"
-	case ".pdf":
-		return "application/pdf"
-	case ".xml":
-		return "application/xml"
-	case ".md":
-		return "text/plain; charset=utf-8"
-	case ".csv":
-		return "text/csv; charset=utf-8"
-	default:
-		return "application/octet-stream"
-	}
-}
-
-// getContentDisposition 返回 Content-Disposition 头
-// inline: 浏览器直接显示
-// attachment: 下载
-func getContentDisposition(filePath string) string {
-	ext := strings.ToLower(filepath.Ext(filePath))
-
-	// 浏览器可以直接显示的文件类型
-	inlineExtensions := []string{
-		".html", ".htm", ".css", ".js", ".json",
-		".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".bmp", ".ico",
-		".txt", ".pdf", ".xml", ".md", ".csv",
-	}
-
-	for _, inlineExt := range inlineExtensions {
-		if ext == inlineExt {
-			// 提取文件名用于 inline 显示
-			filename := filepath.Base(filePath)
-			return fmt.Sprintf("inline; filename=\"%s\"", filename)
-		}
-	}
-
-	// 其他文件类型强制下载
-	filename := filepath.Base(filePath)
-	return fmt.Sprintf("attachment; filename=\"%s\"", filename)
 }
