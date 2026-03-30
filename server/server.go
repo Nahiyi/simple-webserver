@@ -60,10 +60,11 @@ func Stop() error {
 		return fmt.Errorf("服务器未运行")
 	}
 
-	cancel()
-
-	listener.Close()
+	// 先设置停止标志，再关闭listener
+	// 这样Accept()返回错误时，isRunning已经是false，能正确退出
 	isRunning.Store(false)
+	cancel()
+	listener.Close()
 
 	fmt.Println("Web服务器已停止")
 	return nil
@@ -71,16 +72,16 @@ func Stop() error {
 
 // run 运行服务器主循环
 func run() {
-	for {
+	for isRunning.Load() {
 		conn, err := listener.Accept()
 		if err != nil {
-			select {
-			case <-ctx.Done():
+			// 如果服务器已停止，就退出循环
+			if !isRunning.Load() {
 				return
-			default:
-				time.Sleep(100 * time.Millisecond)
-				continue
 			}
+			// 短暂等待后重试
+			time.Sleep(100 * time.Millisecond)
+			continue
 		}
 
 		connections.Add(1)
