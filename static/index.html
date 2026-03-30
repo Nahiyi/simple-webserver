@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简单Web服务器 - 控制面板</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        .card h2 {
+            color: #333;
+            margin-bottom: 16px;
+            font-size: 1.3em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 8px;
+        }
+        .status-bar {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .status-item {
+            flex: 1;
+            min-width: 150px;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .status-item .label {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .status-item .value {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-top: 4px;
+        }
+        .status-item .value.running { color: #28a745; }
+        .status-item .value.stopped { color: #dc3545; }
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 12px 32px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover { background: #5a6fd6; }
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        .btn-danger:hover { background: #c82333; }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover { background: #5a6268; }
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        .btn-success:hover { background: #218838; }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #333;
+            font-weight: 500;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .config-row {
+            display: flex;
+            gap: 16px;
+            align-items: flex-end;
+        }
+        .config-row .form-group {
+            flex: 1;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        .log-status {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        .log-status.success { background: #d4edda; color: #155724; }
+        .log-status.error { background: #f8d7da; color: #721c24; }
+        .log-status.warning { background: #fff3cd; color: #856404; }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .server-info {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 16px;
+        }
+        .server-info p {
+            margin: 4px 0;
+            color: #666;
+        }
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 24px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            opacity: 0;
+            transform: translateX(100px);
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        .toast.show { opacity: 1; transform: translateX(0); }
+        .toast.success { background: #28a745; }
+        .toast.error { background: #dc3545; }
+        .refresh-info {
+            text-align: right;
+            color: #666;
+            font-size: 0.85em;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>简单Web服务器控制面板</h1>
+
+        <!-- 状态卡片 -->
+        <div class="card">
+            <h2>服务器状态</h2>
+            <div class="status-bar">
+                <div class="status-item">
+                    <div class="label">运行状态</div>
+                    <div class="value" id="status-value">--</div>
+                </div>
+                <div class="status-item">
+                    <div class="label">Web端口</div>
+                    <div class="value" id="port-value">--</div>
+                </div>
+                <div class="status-item">
+                    <div class="label">当前连接</div>
+                    <div class="value" id="connections-value">0</div>
+                </div>
+                <div class="status-item">
+                    <div class="label">日志条目</div>
+                    <div class="value" id="logs-value">0</div>
+                </div>
+            </div>
+            <div class="server-info">
+                <p><strong>资源目录:</strong> <span id="root-dir">--</span></p>
+                <p><strong>管理端口:</strong> <span id="admin-port">--</span></p>
+            </div>
+            <div class="btn-group" style="margin-top: 20px;">
+                <button class="btn btn-success" id="btn-start" onclick="startServer()">启动服务器</button>
+                <button class="btn btn-danger" id="btn-stop" onclick="stopServer()">停止服务器</button>
+                <button class="btn btn-secondary" onclick="refreshStatus()">刷新状态</button>
+            </div>
+        </div>
+
+        <!-- 配置卡片 -->
+        <div class="card">
+            <h2>服务器配置</h2>
+            <div class="config-row">
+                <div class="form-group">
+                    <label for="config-port">Web服务端口</label>
+                    <input type="number" id="config-port" min="1" max="65535" placeholder="8080">
+                </div>
+                <div class="form-group">
+                    <label for="config-root">资源根目录</label>
+                    <input type="text" id="config-root" placeholder="/root">
+                </div>
+                <button class="btn btn-primary" onclick="updateConfig()">保存配置</button>
+            </div>
+        </div>
+
+        <!-- 日志卡片 -->
+        <div class="card">
+            <h2>访问日志</h2>
+            <div class="refresh-info">自动刷新: <span id="auto-refresh">开启</span> | 最后更新: <span id="last-update">--</span></div>
+            <div style="margin-bottom: 10px;">
+                <button class="btn btn-secondary" onclick="toggleAutoRefresh()">切换自动刷新</button>
+                <button class="btn btn-secondary" onclick="refreshLogs()">刷新日志</button>
+                <button class="btn btn-danger" onclick="clearLogs()">清空日志</button>
+            </div>
+            <div id="logs-container">
+                <div class="empty-state">加载中...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示消息 -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        let autoRefresh = true;
+        let refreshInterval;
+
+        // 显示提示消息
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type + ' show';
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // 格式化时间
+        function formatTime(timeStr) {
+            return timeStr;
+        }
+
+        // 获取状态
+        async function refreshStatus() {
+            try {
+                const resp = await fetch('/api/status');
+                const data = await resp.json();
+                if (data.success) {
+                    const status = data.data;
+                    document.getElementById('status-value').textContent = status.running ? '运行中' : '已停止';
+                    document.getElementById('status-value').className = 'value ' + (status.running ? 'running' : 'stopped');
+                    document.getElementById('port-value').textContent = status.port;
+                    document.getElementById('connections-value').textContent = status.connections;
+                    document.getElementById('logs-value').textContent = status.logCount;
+                    document.getElementById('root-dir').textContent = status.rootDir;
+                    document.getElementById('admin-port').textContent = status.adminPort;
+
+                    document.getElementById('btn-start').disabled = status.running;
+                    document.getElementById('btn-stop').disabled = !status.running;
+
+                    document.getElementById('config-port').value = status.port;
+                    document.getElementById('config-root').value = status.rootDir;
+                }
+            } catch (e) {
+                console.error('获取状态失败:', e);
+            }
+        }
+
+        // 启动服务器
+        async function startServer() {
+            try {
+                const resp = await fetch('/api/start', { method: 'POST' });
+                const data = await resp.json();
+                showToast(data.message, data.success ? 'success' : 'error');
+                if (data.success) {
+                    refreshStatus();
+                    refreshLogs();
+                }
+            } catch (e) {
+                showToast('启动失败', 'error');
+            }
+        }
+
+        // 停止服务器
+        async function stopServer() {
+            try {
+                const resp = await fetch('/api/stop', { method: 'POST' });
+                const data = await resp.json();
+                showToast(data.message, data.success ? 'success' : 'error');
+                if (data.success) {
+                    refreshStatus();
+                }
+            } catch (e) {
+                showToast('停止失败', 'error');
+            }
+        }
+
+        // 更新配置
+        async function updateConfig() {
+            const port = parseInt(document.getElementById('config-port').value);
+            const rootDir = document.getElementById('config-root').value;
+
+            try {
+                const resp = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ port, rootDir })
+                });
+                const data = await resp.json();
+                showToast(data.message, data.success ? 'success' : 'error');
+                if (data.success) {
+                    refreshStatus();
+                }
+            } catch (e) {
+                showToast('配置失败', 'error');
+            }
+        }
+
+        // 刷新日志
+        async function refreshLogs() {
+            try {
+                const resp = await fetch('/api/logs');
+                const data = await resp.json();
+                if (data.success) {
+                    renderLogs(data.data.logs);
+                    document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+                }
+            } catch (e) {
+                console.error('获取日志失败:', e);
+            }
+        }
+
+        // 渲染日志表格
+        function renderLogs(logs) {
+            const container = document.getElementById('logs-container');
+            if (!logs || logs.length === 0) {
+                container.innerHTML = '<div class="empty-state">暂无访问日志</div>';
+                return;
+            }
+
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>时间</th>
+                            <th>客户端IP</th>
+                            <th>请求方法</th>
+                            <th>URL</th>
+                            <th>状态码</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            logs.forEach(log => {
+                const statusClass = log.Status >= 200 && log.Status < 300 ? 'success' :
+                                   log.Status >= 400 && log.Status < 500 ? 'warning' : 'error';
+                html += `
+                    <tr>
+                        <td>${log.Time}</td>
+                        <td>${log.ClientIP}</td>
+                        <td>${log.Method}</td>
+                        <td>${log.URL}</td>
+                        <td><span class="log-status ${statusClass}">${log.Status}</span></td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        // 清空日志
+        async function clearLogs() {
+            if (!confirm('确定要清空所有日志吗？')) return;
+            try {
+                const resp = await fetch('/api/logs/clear', { method: 'POST' });
+                const data = await resp.json();
+                showToast(data.message, data.success ? 'success' : 'error');
+                if (data.success) {
+                    refreshLogs();
+                    refreshStatus();
+                }
+            } catch (e) {
+                showToast('清空失败', 'error');
+            }
+        }
+
+        // 切换自动刷新
+        function toggleAutoRefresh() {
+            autoRefresh = !autoRefresh;
+            document.getElementById('auto-refresh').textContent = autoRefresh ? '开启' : '关闭';
+            if (autoRefresh) {
+                startAutoRefresh();
+            } else {
+                clearInterval(refreshInterval);
+            }
+        }
+
+        // 启动自动刷新
+        function startAutoRefresh() {
+            clearInterval(refreshInterval);
+            refreshInterval = setInterval(() => {
+                if (autoRefresh) {
+                    refreshStatus();
+                    refreshLogs();
+                }
+            }, 2000);
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            refreshStatus();
+            refreshLogs();
+            startAutoRefresh();
+        });
+    </script>
+</body>
+</html>
