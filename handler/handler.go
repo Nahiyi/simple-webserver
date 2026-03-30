@@ -113,67 +113,118 @@ func HandleConnection(conn net.Conn) {
 }
 
 func sendErrorResponse(conn net.Conn, statusCode int, statusMsg string) {
-	var body string
+	var title, message string
+	var bgColor, textColor string
+
 	switch statusCode {
 	case 404:
-		body = `<!DOCTYPE html>
-<html>
-<head><title>404 Not Found</title></head>
-<body>
-<h1>404 Not Found</h1>
-<p>The requested file was not found on this server.</p>
-<hr>
-<small>Simple Web Server</small>
-</body>
-</html>`
+		title = "404"
+		message = "抱歉，您访问的页面不存在"
+		bgColor = "#fff3cd"
+		textColor = "#856404"
 	case 501:
-		body = `<!DOCTYPE html>
-<html>
-<head><title>501 Not Implemented</title></head>
-<body>
-<h1>501 Not Implemented</h1>
-<p>The requested method is not implemented by this server.</p>
-<hr>
-<small>Simple Web Server</small>
-</body>
-</html>`
+		title = "501"
+		message = "抱歉，请求方法暂未实现"
+		bgColor = "#f8d7da"
+		textColor = "#721c24"
 	case 403:
-		body = `<!DOCTYPE html>
-<html>
-<head><title>403 Forbidden</title></head>
-<body>
-<h1>403 Forbidden</h1>
-<p>Access denied.</p>
-<hr>
-<small>Simple Web Server</small>
-</body>
-</html>`
+		title = "403"
+		message = "抱歉，您没有访问权限"
+		bgColor = "#f8d7da"
+		textColor = "#721c24"
 	case 400:
-		body = `<!DOCTYPE html>
-<html>
-<head><title>400 Bad Request</title></head>
-<body>
-<h1>400 Bad Request</h1>
-<p>Invalid request.</p>
-<hr>
-<small>Simple Web Server</small>
-</body>
-</html>`
+		title = "400"
+		message = "抱歉，请求格式错误"
+		bgColor = "#fff3cd"
+		textColor = "#856404"
 	default:
-		body = `<!DOCTYPE html>
-<html>
-<head><title>500 Internal Server Error</title></head>
-<body>
-<h1>500 Internal Server Error</h1>
-<p>Internal server error.</p>
-<hr>
-<small>Simple Web Server</small>
-</body>
-</html>`
+		title = "500"
+		message = "抱歉，服务器内部错误"
+		bgColor = "#f8d7da"
+		textColor = "#721c24"
 	}
 
+	body := fmt.Sprintf(`<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>%d %s</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f5f7f9 0%%, #e4e7eb 100%%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .error-container {
+            text-align: center;
+            padding: 48px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            max-width: 480px;
+            width: 90%%;
+        }
+        .error-code {
+            font-size: 96px;
+            font-weight: 800;
+            color: #18A058;
+            line-height: 1;
+            margin-bottom: 16px;
+        }
+        .error-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+        }
+        .error-message {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 32px;
+        }
+        .error-box {
+            background: %s;
+            color: %s;
+            padding: 16px 24px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+        .error-box .status {
+            font-size: 20px;
+            font-weight: 700;
+        }
+        .error-box .desc {
+            font-size: 13px;
+            margin-top: 4px;
+        }
+        .footer {
+            margin-top: 32px;
+            font-size: 13px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-code">%s</div>
+        <h1 class="error-title">%s</h1>
+        <p class="error-message">%s</p>
+        <div class="error-box">
+            <div class="status">%d %s</div>
+            <div class="desc">Web服务器</div>
+        </div>
+        <div class="footer">请检查URL是否正确，或联系管理员</div>
+    </div>
+</body>
+</html>`, statusCode, statusMsg, bgColor, textColor, title, title, message, statusCode, statusMsg)
+
 	response := fmt.Sprintf("HTTP/1.1 %d %s\r\n"+
-		"Content-Type: text/html\r\n"+
+		"Content-Type: text/html; charset=utf-8\r\n"+
 		"Content-Length: %d\r\n"+
 		"Connection: close\r\n"+
 		"\r\n%s", statusCode, statusMsg, len(body), body)
