@@ -4,24 +4,131 @@
     <meta charset="UTF-8">
     <title>电子产品</title>
     <style>
-        body { font-family: Arial; max-width: 800px; margin: 50px auto; padding: 20px; background: #f5f5f5; }
-        h1 { color: #18A058; }
-        .back { margin-bottom: 20px; }
-        .back a { color: #666; text-decoration: none; }
-        .list { background: #fff; padding: 20px; border-radius: 8px; }
-        .item { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-        .item:last-child { border-bottom: none; }
-        .price { color: #e74c3c; font-weight: bold; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8faf9 0%, #e8f5ee 100%);
+            min-height: 100vh;
+        }
+        .back {
+            margin-bottom: 30px;
+        }
+        .back a {
+            color: #18A058;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .back a:hover {
+            text-decoration: underline;
+        }
+        h1 {
+            color: #18A058;
+            margin-bottom: 10px;
+        }
+        .breadcrumb {
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+        .product-list {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .product-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px;
+            border-bottom: 1px solid #eee;
+            transition: background 0.2s;
+        }
+        .product-item:last-child {
+            border-bottom: none;
+        }
+        .product-item:hover {
+            background: #f8faf9;
+        }
+        .product-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .product-emoji {
+            font-size: 2em;
+        }
+        .product-name {
+            color: #333;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+        .product-desc {
+            color: #888;
+            font-size: 0.9em;
+            margin-top: 3px;
+        }
+        .product-price {
+            color: #e74c3c;
+            font-weight: 700;
+            font-size: 1.2em;
+        }
     </style>
 </head>
 <body>
-    <div class="back"><a href="../index.html">← 返回产品列表</a></div>
-    <h1>电子产品</h1>
-    <div class="list">
-        <div class="item"><span>📱 智能手机</span><span class="price">¥2999</span></div>
-        <div class="item"><span>💻 笔记本电脑</span><span class="price">¥5999</span></div>
-        <div class="item"><span>🎧 无线耳机</span><span class="price">¥399</span></div>
+    <div class="back">
+        <a href="../index.html">← 返回产品列表</a>
     </div>
-    <p style="margin-top: 20px; color: #666;">当前路径: /demo_site/products/electronics/index.html</p>
+
+    <h1>📱 电子产品</h1>
+    <p class="breadcrumb">当前位置: /demo_site/products/electronics/</p>
+
+    <div class="product-list">
+        <div class="product-item">
+            <div class="product-left">
+                <span class="product-emoji">📱</span>
+                <div>
+                    <div class="product-name">智能手机</div>
+                    <div class="product-desc">5G全网通 · 128GB · 全面屏</div>
+                </div>
+            </div>
+            <span class="product-price">¥2999</span>
+        </div>
+
+        <div class="product-item">
+            <div class="product-left">
+                <span class="product-emoji">💻</span>
+                <div>
+                    <div class="product-name">笔记本电脑</div>
+                    <div class="product-desc">16GB内存 · 512GB SSD · 轻薄设计</div>
+                </div>
+            </div>
+            <span class="product-price">¥5999</span>
+        </div>
+
+        <div class="product-item">
+            <div class="product-left">
+                <span class="product-emoji">🎧</span>
+                <div>
+                    <div class="product-name">无线耳机</div>
+                    <div class="product-desc">降噪功能 · 30小时续航 · 蓝牙5.0</div>
+                </div>
+            </div>
+            <span class="product-price">¥399</span>
+        </div>
+
+        <div class="product-item">
+            <div class="product-left">
+                <span class="product-emoji">⌚</span>
+                <div>
+                    <div class="product-name">智能手表</div>
+                    <div class="product-desc">心率监测 · GPS定位 · 防水设计</div>
+                </div>
+            </div>
+            <span class="product-price">¥1599</span>
+        </div>
+    </div>
 </body>
 </html>

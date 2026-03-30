@@ -4,35 +4,168 @@
     <meta charset="UTF-8">
     <title>图片资源</title>
     <style>
-        body { font-family: Arial; max-width: 800px; margin: 50px auto; padding: 20px; background: #f5f5f5; }
-        h1 { color: #18A058; }
-        .back { margin-bottom: 20px; }
-        .back a { color: #666; text-decoration: none; }
-        .gallery { background: #fff; padding: 20px; border-radius: 8px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
-        .img-box { aspect-ratio: 1; background: #eee; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
-        .img-box span { color: #999; font-size: 12px; }
-        .img-box svg { width: 50px; height: 50px; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8faf9 0%, #e8f5ee 100%);
+            min-height: 100vh;
+        }
+        .back {
+            margin-bottom: 30px;
+        }
+        .back a {
+            color: #18A058;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .back a:hover {
+            text-decoration: underline;
+        }
+        h1 {
+            color: #18A058;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #888;
+            margin-bottom: 30px;
+        }
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+        }
+        .img-card {
+            background: #fff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .img-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+        }
+        .img-preview {
+            height: 160px;
+            background: #fafafa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            border-bottom: 1px solid #eee;
+        }
+        .img-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        .img-info {
+            padding: 20px;
+            text-align: center;
+        }
+        .img-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 1.05em;
+        }
+        .img-type {
+            font-size: 0.85em;
+            color: #888;
+            margin-top: 5px;
+        }
+        .tip {
+            background: #e8f5ee;
+            border-left: 4px solid #18A058;
+            padding: 15px 20px;
+            margin-top: 40px;
+            border-radius: 0 10px 10px 0;
+            color: #555;
+        }
+        .tip strong {
+            color: #18A058;
+        }
     </style>
 </head>
 <body>
-    <div class="back"><a href="../index.html">← 返回产品列表</a></div>
-    <h1>图片资源</h1>
-    <p>当前路径: /demo_site/products/images/index.html</p>
-    <div class="gallery">
-        <div class="img-box">
-            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="50" cy="50" r="40" fill="#18A058"/>
-                <text x="50" y="55" text-anchor="middle" fill="white" font-size="12">SVG</text>
-            </svg>
-        </div>
-        <div class="img-box"><span>logo.png</span></div>
-        <div class="img-box"><span>banner.jpg</span></div>
-        <div class="img-box"><span>icon.gif</span></div>
-        <div class="img-box"><span>bg.webp</span></div>
-        <div class="img-box"><span>photo.bmp</span></div>
+    <div class="back">
+        <a href="../index.html">← 返回产品列表</a>
     </div>
-    <p style="margin-top: 20px; color: #666; text-align: center;">
-        图片文件会在浏览器中直接显示，而非下载
-    </p>
+
+    <h1>🖼️ 图片资源</h1>
+    <p class="subtitle">当前路径: /demo_site/products/images/</p>
+
+    <div class="gallery">
+        <!-- GitHub -->
+        <div class="img-card">
+            <div class="img-preview">
+                <img src="github.svg" alt="GitHub">
+            </div>
+            <div class="img-info">
+                <div class="img-name">GitHub</div>
+                <div class="img-type">SVG矢量图形</div>
+            </div>
+        </div>
+
+        <!-- Docker -->
+        <div class="img-card">
+            <div class="img-preview">
+                <img src="docker.svg" alt="Docker">
+            </div>
+            <div class="img-info">
+                <div class="img-name">Docker</div>
+                <div class="img-type">SVG矢量图形</div>
+            </div>
+        </div>
+
+        <!-- Kubernetes -->
+        <div class="img-card">
+            <div class="img-preview">
+                <img src="kubernetes.svg" alt="Kubernetes">
+            </div>
+            <div class="img-info">
+                <div class="img-name">Kubernetes</div>
+                <div class="img-type">SVG矢量图形</div>
+            </div>
+        </div>
+
+        <!-- Nginx -->
+        <div class="img-card">
+            <div class="img-preview">
+                <img src="nginx.svg" alt="Nginx">
+            </div>
+            <div class="img-info">
+                <div class="img-name">Nginx</div>
+                <div class="img-type">SVG矢量图形</div>
+            </div>
+        </div>
+
+        <!-- Python -->
+        <div class="img-card">
+            <div class="img-preview">
+                <img src="python.svg" alt="Python">
+            </div>
+            <div class="img-info">
+                <div class="img-name">Python</div>
+                <div class="img-type">SVG矢量图形</div>
+            </div>
+        </div>
+
+        <!-- Redis -->
+        <div class="img-card">
+            <div class="img-preview">
+                <img src="redis.svg" alt="Redis">
+            </div>
+            <div class="img-info">
+                <div class="img-name">Redis</div>
+                <div class="img-type">SVG矢量图形</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tip">
+        <strong>提示：</strong>这些SVG图片文件由浏览器直接渲染显示，无需下载。如需查看源码，可以访问对应的 .svg 文件路径。
+    </div>
 </body>
 </html>

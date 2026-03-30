@@ -4,24 +4,132 @@
     <meta charset="UTF-8">
     <title>图书列表</title>
     <style>
-        body { font-family: Arial; max-width: 800px; margin: 50px auto; padding: 20px; background: #f5f5f5; }
-        h1 { color: #18A058; }
-        .back { margin-bottom: 20px; }
-        .back a { color: #666; text-decoration: none; }
-        .list { background: #fff; padding: 20px; border-radius: 8px; }
-        .book { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
-        .book:last-child { border-bottom: none; }
-        .price { color: #e74c3c; font-weight: bold; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8faf9 0%, #e8f5ee 100%);
+            min-height: 100vh;
+        }
+        .back {
+            margin-bottom: 30px;
+        }
+        .back a {
+            color: #18A058;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .back a:hover {
+            text-decoration: underline;
+        }
+        h1 {
+            color: #18A058;
+            margin-bottom: 10px;
+        }
+        .breadcrumb {
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+        .book-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .book-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .book-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+        }
+        .book-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .book-icon {
+            font-size: 2.5em;
+        }
+        .book-title {
+            color: #333;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+        .book-author {
+            color: #888;
+            font-size: 0.9em;
+            margin-top: 3px;
+        }
+        .book-price {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+        }
     </style>
 </head>
 <body>
-    <div class="back"><a href="../index.html">← 返回产品列表</a></div>
-    <h1>图书列表</h1>
-    <div class="list">
-        <div class="book"><span>📚 Go语言编程</span><span class="price">¥79</span></div>
-        <div class="book"><span>📚 计算机网络</span><span class="price">¥69</span></div>
-        <div class="book"><span>📚 数据结构</span><span class="price">¥59</span></div>
+    <div class="back">
+        <a href="../index.html">← 返回产品列表</a>
     </div>
-    <p style="margin-top: 20px; color: #666;">当前路径: /demo_site/products/books/index.html</p>
+
+    <h1>📚 图书列表</h1>
+    <p class="breadcrumb">当前位置: /demo_site/products/books/</p>
+
+    <div class="book-list">
+        <div class="book-card">
+            <div class="book-info">
+                <span class="book-icon">📖</span>
+                <div>
+                    <div class="book-title">Go语言编程</div>
+                    <div class="book-author">作者: 某某某 · 出版社: 某某出版社</div>
+                </div>
+            </div>
+            <span class="book-price">¥79</span>
+        </div>
+
+        <div class="book-card">
+            <div class="book-info">
+                <span class="book-icon">📕</span>
+                <div>
+                    <div class="book-title">计算机网络</div>
+                    <div class="book-author">作者: 某某某 · 出版社: 某某出版社</div>
+                </div>
+            </div>
+            <span class="book-price">¥69</span>
+        </div>
+
+        <div class="book-card">
+            <div class="book-info">
+                <span class="book-icon">📗</span>
+                <div>
+                    <div class="book-title">数据结构与算法</div>
+                    <div class="book-author">作者: 某某某 · 出版社: 某某出版社</div>
+                </div>
+            </div>
+            <span class="book-price">¥59</span>
+        </div>
+
+        <div class="book-card">
+            <div class="book-info">
+                <span class="book-icon">📘</span>
+                <div>
+                    <div class="book-title">操作系统原理</div>
+                    <div class="book-author">作者: 某某某 · 出版社: 某某出版社</div>
+                </div>
+            </div>
+            <span class="book-price">¥65</span>
+        </div>
+    </div>
 </body>
 </html>
