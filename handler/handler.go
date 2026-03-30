@@ -238,9 +238,9 @@ func getContentType(filePath string) string {
 	case ".html", ".htm":
 		return "text/html; charset=utf-8"
 	case ".css":
-		return "text/css"
+		return "text/css; charset=utf-8"
 	case ".js":
-		return "application/javascript"
+		return "application/javascript; charset=utf-8"
 	case ".json":
 		return "application/json"
 	case ".png":
