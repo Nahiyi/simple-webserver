@@ -1,0 +1,48 @@
+/* 演示样式表 - 绿色主题 */
+:root {
+    --primary: #18A058;
+    --primary-dark: #14803c;
+    --primary-light: #e8f5ee;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+header {
+    background: var(--primary);
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+
+nav {
+    background: var(--primary-light);
+    padding: 10px 20px;
+}
+
+nav a {
+    color: var(--primary-dark);
+    text-decoration: none;
+    margin: 0 10px;
+}
+
+nav a:hover {
+    text-decoration: underline;
+}
+
+main {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 0 20px;
+}
+
+footer {
+    background: #f5f5f5;
+    padding: 20px;
+    text-align: center;
+    color: #666;
+    margin-top: 40px;
+}

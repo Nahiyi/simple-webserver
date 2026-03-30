@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>产品列表</title>
+    <style>
+        body { font-family: Arial; max-width: 800px; margin: 50px auto; padding: 20px; background: #f5f5f5; }
+        h1 { color: #18A058; }
+        .back { margin-bottom: 20px; }
+        .back a { color: #666; text-decoration: none; }
+        .products { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .product { background: #fff; padding: 15px; border-radius: 8px; text-align: center; }
+        .product h3 { color: #333; margin-bottom: 10px; }
+        .product a { color: #18A058; text-decoration: none; }
+        .product a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="back"><a href="../index.html">← 返回首页</a></div>
+    <h1>产品列表</h1>
+    <p>当前路径: /demo_site/products/index.html</p>
+    <div class="products">
+        <div class="product">
+            <h3>电子产品</h3>
+            <a href="electronics/index.html">查看 →</a>
+        </div>
+        <div class="product">
+            <h3>图书</h3>
+            <a href="books/index.html">查看 →</a>
+        </div>
+        <div class="product">
+            <h3>图片资源</h3>
+            <a href="images/index.html">查看 →</a>
+        </div>
+    </div>
+</body>
+</html>
