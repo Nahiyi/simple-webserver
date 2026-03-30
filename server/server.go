@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net"
 	"sync/atomic"
-	"time"
 
 	"simple-webserver/config"
 	"simple-webserver/handler"
@@ -60,8 +59,6 @@ func Stop() error {
 		return fmt.Errorf("服务器未运行")
 	}
 
-	// 先设置停止标志，再关闭listener
-	// 这样Accept()返回错误时，isRunning已经是false，能正确退出
 	isRunning.Store(false)
 	cancel()
 	listener.Close()
@@ -71,21 +68,22 @@ func Stop() error {
 }
 
 // run 运行服务器主循环
+// 使用 select + context 优雅处理停止信号
 func run() {
-	for isRunning.Load() {
+	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			// 如果服务器已停止，就退出循环
-			if !isRunning.Load() {
+			// select 监听 context 是否取消，优雅退出
+			select {
+			case <-ctx.Done():
 				return
+			default:
+				// context 未取消，说明是其他错误，继续尝试
+				continue
 			}
-			// 短暂等待后重试
-			time.Sleep(100 * time.Millisecond)
-			continue
 		}
 
 		connections.Add(1)
-
 		go func() {
 			defer connections.Add(-1)
 			handler.HandleConnection(conn)
